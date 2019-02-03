@@ -1,5 +1,6 @@
 package com.example.cv_project.views;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,13 +11,18 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.example.cv_project.base.BaseApp;
-import com.example.cv_project.utils.HexInfo;
+import com.example.cv_project.utils.gamedata.HexPosition;
+import com.example.cv_project.utils.gamedata.HexInfo;
 import com.example.cv_project.utils.SizeStorage;
 import com.example.cv_project.utils.SizeUtils;
+import com.example.cv_project.utils.gamedata.HexTableInfo;
+import com.example.cv_project.utils.gamedata.LineInfo;
+import com.example.cv_project.utils.gamedata.MissionInstance;
+
+import java.util.HashMap;
 
 import javax.inject.Inject;
 
@@ -30,6 +36,10 @@ public class GameView extends FrameLayout {
 
     private GameViewTouchListener mGameViewTouchListener = new GameViewTouchListener();
     private HexView mSelectedHexView;
+    private HexView mSelectedHexViewCopy;
+
+    private MissionInstance mCurrentMissionInstance = null;
+    private HashMap<HexPosition, HexView> mHexViews = new HashMap<>();
 
     public GameView(@NonNull Context context) {
         super(context);
@@ -62,7 +72,7 @@ public class GameView extends FrameLayout {
 
         mPaintTable = new Paint();
         mPaintTable.setAntiAlias(true);
-        mPaintTable.setColor(Color.RED);
+        mPaintTable.setColor(Color.BLACK);
         mPaintTable.setStrokeWidth(mSizeStorage.mTaskBackLineWidth);
         mPaintTable.setStyle(Paint.Style.STROKE);
     }
@@ -72,8 +82,8 @@ public class GameView extends FrameLayout {
         super.onDraw(canvas);
         canvas.drawPath(SizeUtils.floatArrayToPath(mSizeStorage.mTaskTops), mPaintTask);
 
-        for (HexInfo hexInfo : mSizeStorage.mTableHexInfoHM.values()) {
-            canvas.drawPath(SizeUtils.floatArrayToPath(hexInfo.mTops), mPaintTable);
+        for (HexTableInfo hexTableInfo : mSizeStorage.mTableHexInfoHM.values()) {
+            canvas.drawPath(SizeUtils.floatArrayToPath(hexTableInfo.mTops), mPaintTable);
         }
     }
 
@@ -81,12 +91,96 @@ public class GameView extends FrameLayout {
         setOnTouchListener(mGameViewTouchListener);
     }
 
-    public void addHexToTable(HexInfo hexInfo) {
-        HexView hexView = new HexView(getContext());
-        FrameLayout.LayoutParams hexViewLp = new FrameLayout.LayoutParams((int) mSizeStorage.mTableHexOutDia, (int) mSizeStorage.mTableHexOutDia);
-        addView(hexView, hexViewLp);
+    public void loadMission(MissionInstance missionInstance) {
+        mCurrentMissionInstance = missionInstance;
+        for (HexPosition hexPosition : mCurrentMissionInstance.getMissionHexMap().keySet()) {
+            HexInfo hexInfo = mCurrentMissionInstance.getMissionHexMap().get(hexPosition);
+            addHexToTable(hexPosition, hexInfo);
+        }
+    }
 
+    public void addHexToTable(HexPosition startPosition, HexInfo hexInfo) {
+        HexView hexView = new HexView(getContext());
+        hexView.mHexInfo = hexInfo;
+        mHexViews.put(startPosition, hexView);
+        //Set Size
+        FrameLayout.LayoutParams hexViewLp = new FrameLayout.LayoutParams((int) mSizeStorage.mTableHexOutDia, (int) mSizeStorage.mTableHexOutDia);
+        //Add on Table
+        addView(hexView, hexViewLp);
+        //Set Start Position
+        hexView.setTranslationX(mSizeStorage.getHexTranslationXByPosition(startPosition));
+        hexView.setTranslationY(mSizeStorage.getHexTranslationYByPosition(startPosition));
+        //Set Touch Listener
         hexView.setOnTouchListener(new HexViewTouchListener());
+    }
+
+    public void releaseHex() {
+        if (mSelectedHexView == null) return;
+        HexPosition nearestHexPosition = mSizeStorage.getNearestHexPosition(mSelectedHexView.getTranslationX() + mSizeStorage.mTableHexOutRad, mSelectedHexView.getTranslationY() + mSizeStorage.mTableHexOutRad);
+        if (nearestHexPosition != null) {
+            if (mCurrentMissionInstance.getMissionHexMap().containsKey(nearestHexPosition)) {
+                releaseHexAtLastPosition();
+            } else {
+                releaseHexAtNewPosition(nearestHexPosition);
+            }
+        } else {
+            releaseHexAtLastPosition();
+        }
+        logCurrentMissionInstance();
+    }
+
+    private void releaseHexAtNewPosition(HexPosition newHexPosition) {
+        HexPosition startHexPosition = mSelectedHexView.mHexInfo.mStartHexPosition;
+        HexPosition lastHexPosition = mSelectedHexView.mHexInfo.mLastHexPosition;
+        HexInfo hexInfo = mSelectedHexView.mHexInfo;
+
+        mCurrentMissionInstance.getMissionHexMap().remove(lastHexPosition);
+        mSelectedHexView = null;
+
+        final HexView hexView = mHexViews.get(startHexPosition);
+        hexView.mHexInfo.mLastHexPosition = newHexPosition;
+        mCurrentMissionInstance.getMissionHexMap().put(newHexPosition, hexInfo);
+
+        float currentTranslationX = hexView.getTranslationX();
+        float currentTranslationY = hexView.getTranslationY();
+
+        float newTranslationX = mSizeStorage.getHexTranslationXByPosition(newHexPosition);
+        float newTranslationY = mSizeStorage.getHexTranslationYByPosition(newHexPosition);
+
+        ValueAnimator animatorTranslationX = ValueAnimator.ofFloat(currentTranslationX, newTranslationX);
+        animatorTranslationX.setDuration(150);
+        animatorTranslationX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float value = (float) animation.getAnimatedValue();
+                hexView.setTranslationX(value);
+            }
+        });
+
+        ValueAnimator animatorTranslationY = ValueAnimator.ofFloat(currentTranslationY, newTranslationY);
+        animatorTranslationY.setDuration(150);
+        animatorTranslationY.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float value = (float) animation.getAnimatedValue();
+                hexView.setTranslationY(value);
+
+            }
+        });
+        animatorTranslationX.start();
+        animatorTranslationY.start();
+    }
+
+    private void releaseHexAtLastPosition() {
+        HexView hexView = mHexViews.get(mSelectedHexView.mHexInfo.mStartHexPosition);
+        mSelectedHexView = null;
+        HexPosition lastHexPosition = hexView.mHexInfo.mLastHexPosition;
+        hexView.setTranslationX(mSizeStorage.getHexTranslationXByPosition(lastHexPosition));
+        hexView.setTranslationY(mSizeStorage.getHexTranslationYByPosition(lastHexPosition));
+    }
+
+    private void drawLines(){
+
     }
 
     private class GameViewTouchListener implements OnTouchListener {
@@ -100,17 +194,15 @@ public class GameView extends FrameLayout {
                 case MotionEvent.ACTION_DOWN:
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    Log.d("MyLogs", "Finger x=" + fingerX + "; y=" + fingerY);
-                    if(mSelectedHexView == null) return true;
-                    FrameLayout.LayoutParams selectedHexViewLp = (FrameLayout.LayoutParams) mSelectedHexView.getLayoutParams();
-                    if(selectedHexViewLp == null) return true;
-                    selectedHexViewLp.setMargins((int) fingerX, (int) fingerY, 0, 0);
-                    mSelectedHexView.setLayoutParams(selectedHexViewLp);
+                    if (mSelectedHexView == null) return true;
+                    mSelectedHexView.setTranslationX((int) fingerX - mSizeStorage.mTableHexOutRad);
+                    mSelectedHexView.setTranslationY((int) fingerY - mSizeStorage.mTableHexOutRad);
                     break;
                 case MotionEvent.ACTION_CANCEL:
                     mSelectedHexView = null;
                     break;
                 case MotionEvent.ACTION_UP:
+                    releaseHex();
                     mSelectedHexView = null;
                     break;
             }
@@ -126,15 +218,24 @@ public class GameView extends FrameLayout {
             switch (action) {
                 case MotionEvent.ACTION_DOWN:
                     mSelectedHexView = (HexView) view;
-                    Log.d("MyLogs", "Hex ACTION_DOWN");
                     break;
                 case MotionEvent.ACTION_CANCEL:
+                    break;
                 case MotionEvent.ACTION_UP:
                     mSelectedHexView = null;
-                    Log.d("MyLogs", "Hex ACTION_UP");
                     break;
             }
             return false;
+        }
+    }
+
+    private void logCurrentMissionInstance() {
+        Log.d("MyLogs", "CurrentMissionInstance");
+        for (HexPosition hexPosition : mCurrentMissionInstance.getMissionHexMap().keySet()) {
+            Log.d("MyLogs", hexPosition.first + "," + hexPosition.second + " -> " + mCurrentMissionInstance.getMissionHexMap().get(hexPosition));
+        }
+        for(LineInfo lineInfo : mCurrentMissionInstance.getMissionLines()){
+            Log.d("MyLogs", "Line -> " + lineInfo.first + " - " + lineInfo.second);
         }
     }
 }

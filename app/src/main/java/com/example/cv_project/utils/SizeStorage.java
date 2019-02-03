@@ -7,11 +7,15 @@ import android.view.Display;
 import android.view.WindowManager;
 
 import com.example.cv_project.R;
+import com.example.cv_project.utils.gamedata.HexInfo;
+import com.example.cv_project.utils.gamedata.HexPosition;
+import com.example.cv_project.utils.gamedata.HexTableInfo;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SizeStorage {
+
+    public static int UNKNOWN_MAT_POSITION = 100;
 
     private Context mContext;
 
@@ -42,9 +46,9 @@ public class SizeStorage {
     public float mTableHorizontalRelation = 0.9f;
     public float mTableHexOutDia = 0;
     public float mTableHexOutRad = 0;
-    public float mTableHexVerticalMargin = 0;
+    public float mTableHexVerticalInterval = 0;
     public float mTableBackLineWidth = 0;
-    public HashMap<Pair<Float, Float>, HexInfo> mTableHexInfoHM = new HashMap<>();
+    public HashMap<HexPosition, HexTableInfo> mTableHexInfoHM = new HashMap<>();
 
     //Helper
     public int mMargin = 0;
@@ -112,41 +116,78 @@ public class SizeStorage {
         int tableWorkWidth = (int) (mTableWidth * mTableHorizontalRelation);
         mTableHexOutRad = (float) tableWorkWidth / 10;
         mTableHexOutDia = mTableHexOutRad * 2;
-        mTableHexVerticalMargin = (float) (Math.sqrt(3) / 2 * mTableHexOutDia);
+        mTableHexVerticalInterval = (float) (Math.sqrt(3) / 2 * mTableHexOutDia);
 
-        mTableHexInfoHM.put(new Pair<>(-1f, 2f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(0f, 2f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(1f, 2f), new HexInfo());
+        mTableHexInfoHM.put(new HexPosition(-1f, 2f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(0f, 2f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(1f, 2f), new HexTableInfo());
 
-        mTableHexInfoHM.put(new Pair<>(-1.5f, 1f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(-0.5f, 1f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(0.5f, 1f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(1.5f, 1f), new HexInfo());
+        mTableHexInfoHM.put(new HexPosition(-1.5f, 1f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(-0.5f, 1f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(0.5f, 1f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(1.5f, 1f), new HexTableInfo());
 
-        mTableHexInfoHM.put(new Pair<>(-2f, 0f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(-1f, 0f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(0f, 0f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(1f, 0f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(2f, 0f), new HexInfo());
+        mTableHexInfoHM.put(new HexPosition(-2f, 0f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(-1f, 0f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(0f, 0f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(1f, 0f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(2f, 0f), new HexTableInfo());
 
-        mTableHexInfoHM.put(new Pair<>(-1.5f, -1f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(-0.5f, -1f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(0.5f, -1f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(1.5f, -1f), new HexInfo());
+        mTableHexInfoHM.put(new HexPosition(-1.5f, -1f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(-0.5f, -1f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(0.5f, -1f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(1.5f, -1f), new HexTableInfo());
 
-        mTableHexInfoHM.put(new Pair<>(-1f, -2f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(0f, -2f), new HexInfo());
-        mTableHexInfoHM.put(new Pair<>(1f, -2f), new HexInfo());
+        mTableHexInfoHM.put(new HexPosition(-1f, -2f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(0f, -2f), new HexTableInfo());
+        mTableHexInfoHM.put(new HexPosition(1f, -2f), new HexTableInfo());
 
-        for (Pair<Float, Float> pair : mTableHexInfoHM.keySet()) {
-            HexInfo hexInfo = mTableHexInfoHM.get(pair);
-            float centerX = mTableCenterX + pair.first * mTableHexOutDia;
-            float centerY = mTableCenterY - pair.second * mTableHexVerticalMargin;
-            hexInfo.mCenterX = centerX;
-            hexInfo.mCenterY = centerY;
-            hexInfo.mOutDia = mTableHexOutDia;
-            hexInfo.mOutRad = mTableHexOutRad;
-            hexInfo.build();
+        for (HexPosition hexTablePosition : mTableHexInfoHM.keySet()) {
+            HexTableInfo hexTableInfo = mTableHexInfoHM.get(hexTablePosition);
+            hexTableInfo.mOutDia = mTableHexOutDia;
+            hexTableInfo.mOutRad = mTableHexOutRad;
+            hexTableInfo.mCenterX = getHexCenterXByPosition(hexTablePosition);
+            hexTableInfo.mCenterY = getHexCenterYByPosition(hexTablePosition);
+            hexTableInfo.build();
         }
+    }
+
+    public float getHexCenterXByPosition(HexPosition position) {
+        float x = position.first;
+        return mTableCenterX + x * mTableHexOutDia;
+    }
+
+    public float getHexTranslationXByPosition(HexPosition position) {
+        return getHexCenterXByPosition(position) - mTableHexOutRad;
+    }
+
+    public float getHexCenterYByPosition(HexPosition position) {
+        float y = position.second;
+        return mTableCenterY - y * mTableHexVerticalInterval;
+    }
+
+    public float getHexTranslationYByPosition(HexPosition position) {
+        return getHexCenterYByPosition(position) - mTableHexOutRad;
+    }
+
+    public HexPosition getNearestHexPosition(float x, float y) {
+        float minDelta = mTableHexOutDia * 2;
+        HexPosition nearestHexPosition = null;
+        for (HexPosition hexTablePosition : mTableHexInfoHM.keySet()) {
+            HexTableInfo hexTableInfo = mTableHexInfoHM.get(hexTablePosition);
+            float matPositionX = hexTableInfo.mCenterX;
+            float matPositionY = hexTableInfo.mCenterY;
+            float deltaX = Math.abs(Math.max(matPositionX, x) - Math.min(matPositionX, x));
+            float deltaY = Math.abs(Math.max(matPositionY, y) - Math.min(matPositionY, y));
+            float delta = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            if (delta < minDelta) {
+                minDelta = delta;
+                nearestHexPosition = hexTablePosition;
+            }
+        }
+        if (minDelta >= mTableHexOutRad) {
+            nearestHexPosition = null;
+        }
+        return nearestHexPosition;
     }
 }

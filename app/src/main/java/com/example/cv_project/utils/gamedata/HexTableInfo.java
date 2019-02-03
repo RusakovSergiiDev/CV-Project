@@ -1,17 +1,10 @@
-package com.example.cv_project.utils;
+package com.example.cv_project.utils.gamedata;
 
-public class HexInfo {
+public class HexTableInfo extends HexInfo{
 
     public float mCenterX = 0;
     public float mCenterY = 0;
-    public float mOutRad = 0;
-    public float mOutDia = 0;
-    public float mInnRad = 0;
-    public float mInnDia = 0;
     public float[] mTops = new float[12];
-
-    public HexInfo() {
-    }
 
     public HexInfo build() {
         mInnRad = (float) (Math.sqrt(3) / 2 * mOutRad);

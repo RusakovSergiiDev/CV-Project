@@ -8,9 +8,11 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import com.example.cv_project.utils.SizeUtils;
+import com.example.cv_project.utils.gamedata.HexInfo;
 
 public class HexView extends View {
 
+    public HexInfo mHexInfo;
     private Paint mPaint;
     float[] mTops = new float[12];
 
