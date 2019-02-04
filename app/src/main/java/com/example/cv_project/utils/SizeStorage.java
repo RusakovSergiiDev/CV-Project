@@ -2,12 +2,10 @@ package com.example.cv_project.utils;
 
 import android.content.Context;
 import android.util.DisplayMetrics;
-import android.util.Pair;
 import android.view.Display;
 import android.view.WindowManager;
 
 import com.example.cv_project.R;
-import com.example.cv_project.utils.gamedata.HexInfo;
 import com.example.cv_project.utils.gamedata.HexPosition;
 import com.example.cv_project.utils.gamedata.HexTableInfo;
 
@@ -34,7 +32,11 @@ public class SizeStorage {
     public float mTaskWidth = 0;
     public float mTaskHeight = 0;
     public float mTaskBackHexRad = 0;
+    public float mTaskHexOutRad = 0;
+    public float mTaskHexOutDia = 0;
+    public float mTaskHexVerticalInterval = 0;
     public float mTaskBackLineWidth = 0;
+    public HashMap<HexPosition, HexTableInfo> mTaskHexInfoHM = new HashMap<>();
     public float[] mTaskTops = new float[12];
     //Table
     public float mTableCenterX = 0;
@@ -104,6 +106,43 @@ public class SizeStorage {
         mTaskTops[9] = mTaskCenterY + mTaskHeight / 2;
         mTaskTops[10] = mTaskCenterX - mTaskBackHexRad / 2;
         mTaskTops[11] = mTaskCenterY + mTaskHeight / 2;
+
+        mTaskHexOutRad = (mTaskBackHexRad * 2) / 10;
+        mTaskHexOutDia = mTaskHexOutRad * 2;
+        mTaskHexVerticalInterval = (float) (Math.sqrt(3) / 2 * mTaskHexOutDia);
+
+        mTaskHexInfoHM.put(new HexPosition(-1f, 2f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(0f, 2f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(1f, 2f), new HexTableInfo());
+
+        mTaskHexInfoHM.put(new HexPosition(-1.5f, 1f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(-0.5f, 1f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(0.5f, 1f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(1.5f, 1f), new HexTableInfo());
+
+        mTaskHexInfoHM.put(new HexPosition(-2f, 0f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(-1f, 0f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(0f, 0f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(1f, 0f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(2f, 0f), new HexTableInfo());
+
+        mTaskHexInfoHM.put(new HexPosition(-1.5f, -1f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(-0.5f, -1f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(0.5f, -1f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(1.5f, -1f), new HexTableInfo());
+
+        mTaskHexInfoHM.put(new HexPosition(-1f, -2f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(0f, -2f), new HexTableInfo());
+        mTaskHexInfoHM.put(new HexPosition(1f, -2f), new HexTableInfo());
+
+        for (HexPosition hexPosition : mTaskHexInfoHM.keySet()) {
+            HexTableInfo hexTableInfo = mTaskHexInfoHM.get(hexPosition);
+            hexTableInfo.mOutDia = mTaskHexOutDia;
+            hexTableInfo.mOutRad = mTaskHexOutRad;
+            hexTableInfo.mCenterX = mTaskCenterX + hexPosition.first * mTaskHexOutDia;
+            hexTableInfo.mCenterY = mTaskCenterY - hexPosition.second * mTaskHexVerticalInterval;
+            hexTableInfo.build();
+        }
     }
 
     private void setTableSizes() {
@@ -144,12 +183,12 @@ public class SizeStorage {
         mTableHexInfoHM.put(new HexPosition(0f, -2f), new HexTableInfo());
         mTableHexInfoHM.put(new HexPosition(1f, -2f), new HexTableInfo());
 
-        for (HexPosition hexTablePosition : mTableHexInfoHM.keySet()) {
-            HexTableInfo hexTableInfo = mTableHexInfoHM.get(hexTablePosition);
+        for (HexPosition hexPosition : mTableHexInfoHM.keySet()) {
+            HexTableInfo hexTableInfo = mTableHexInfoHM.get(hexPosition);
             hexTableInfo.mOutDia = mTableHexOutDia;
             hexTableInfo.mOutRad = mTableHexOutRad;
-            hexTableInfo.mCenterX = getHexCenterXByPosition(hexTablePosition);
-            hexTableInfo.mCenterY = getHexCenterYByPosition(hexTablePosition);
+            hexTableInfo.mCenterX = getHexCenterXByPosition(hexPosition);
+            hexTableInfo.mCenterY = getHexCenterYByPosition(hexPosition);
             hexTableInfo.build();
         }
 

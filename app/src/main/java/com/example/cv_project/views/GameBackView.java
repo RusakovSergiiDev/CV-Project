@@ -12,7 +12,13 @@ import android.widget.FrameLayout;
 import com.example.cv_project.base.BaseApp;
 import com.example.cv_project.utils.SizeStorage;
 import com.example.cv_project.utils.SizeUtils;
+import com.example.cv_project.utils.gamedata.HexPosition;
 import com.example.cv_project.utils.gamedata.HexTableInfo;
+import com.example.cv_project.utils.gamedata.LineInfo;
+import com.example.cv_project.utils.gamedata.MissionInstance;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.inject.Inject;
 
@@ -21,8 +27,10 @@ public class GameBackView extends FrameLayout {
     @Inject
     SizeStorage mSizeStorage;
 
+    private MissionInstance mCurrentMissionInstance;
     private Paint mPaintTask;
     private Paint mPaintTable;
+    private ArrayList<Float> mLinesTops = new ArrayList<>();
 
     public GameBackView(@NonNull Context context) {
         super(context);
@@ -48,7 +56,7 @@ public class GameBackView extends FrameLayout {
     private void initPaints() {
         mPaintTask = new Paint();
         mPaintTask.setAntiAlias(true);
-        mPaintTask.setColor(Color.GREEN);
+        mPaintTask.setColor(Color.BLACK);
         mPaintTask.setStrokeWidth(mSizeStorage.mTaskBackLineWidth);
         mPaintTask.setStyle(Paint.Style.STROKE);
 
@@ -67,5 +75,37 @@ public class GameBackView extends FrameLayout {
         for (HexTableInfo hexTableInfo : mSizeStorage.mTableHexInfoHM.values()) {
             canvas.drawPath(SizeUtils.floatArrayToPath(hexTableInfo.mTops), mPaintTable);
         }
+
+        for (int i = 0; i < mLinesTops.size(); i += 4) {
+            float fromX = mLinesTops.get(i);
+            float fromY = mLinesTops.get(i + 1);
+            float toX = mLinesTops.get(i + 2);
+            float toY = mLinesTops.get(i + 3);
+            canvas.drawLine(fromX, fromY, toX, toY, mPaintTask);
+        }
+    }
+
+    public void loadMission(MissionInstance mission) {
+        mCurrentMissionInstance = mission;
+        ArrayList<LineInfo> lines = new ArrayList<>(mCurrentMissionInstance.getMissionLines());
+        HashMap<HexPosition, HexTableInfo> taskPositionHm = mSizeStorage.mTaskHexInfoHM;
+        for (LineInfo lineInfo : lines) {
+            HexPosition lineFrom = lineInfo.first;
+            HexPosition lineTo = lineInfo.second;
+
+            HexTableInfo infoFrom = taskPositionHm.get(lineFrom);
+            HexTableInfo infoTo = taskPositionHm.get(lineTo);
+
+            float fromX = infoFrom.mCenterX;
+            float fromY = infoFrom.mCenterY;
+            float toX = infoTo.mCenterX;
+            float toY = infoTo.mCenterY;
+
+            mLinesTops.add(fromX);
+            mLinesTops.add(fromY);
+            mLinesTops.add(toX);
+            mLinesTops.add(toY);
+        }
+        invalidate();
     }
 }
