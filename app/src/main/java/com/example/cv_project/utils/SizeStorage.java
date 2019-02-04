@@ -49,6 +49,8 @@ public class SizeStorage {
     public float mTableHexVerticalInterval = 0;
     public float mTableBackLineWidth = 0;
     public HashMap<HexPosition, HexTableInfo> mTableHexInfoHM = new HashMap<>();
+    //Line
+    public float mLineWidth = 0;
 
     //Helper
     public int mMargin = 0;
@@ -150,6 +152,8 @@ public class SizeStorage {
             hexTableInfo.mCenterY = getHexCenterYByPosition(hexTablePosition);
             hexTableInfo.build();
         }
+
+        mLineWidth = mTableHexOutRad / 2;
     }
 
     public float getHexCenterXByPosition(HexPosition position) {

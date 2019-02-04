@@ -12,7 +12,7 @@ public class HexInfo {
     public HexPosition mStartHexPosition;
     public HexPosition mLastHexPosition;
 
-    ArrayList<HexPosition> mLines = new ArrayList<>();
+    public ArrayList<HexPosition> mLines = new ArrayList<>();
 
     public HexInfo() {
 

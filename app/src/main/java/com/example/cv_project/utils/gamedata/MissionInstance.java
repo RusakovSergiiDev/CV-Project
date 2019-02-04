@@ -7,36 +7,30 @@ import java.util.HashSet;
 public class MissionInstance {
 
     private HashMap<HexPosition, HexInfo> mMissionHexMap = new HashMap<>();
+    private ArrayList<LineInfo> mMissionLineList = new ArrayList<>();
 
     public void initMission(ArrayList<HexInfo> hexInfoList) {
-//        for (HexInfo hexInfo : hexInfoList) {
-////            mMissionHexMap.put(new HexPosition(0f, 0f), hexInfo);
-////        }
+        HexInfo hexInfo0 = new HexInfo();
+        hexInfo0.mStartHexPosition = new HexPosition(-1f, 2f);
+        hexInfo0.mLastHexPosition = new HexPosition(-1f, 2f);
+        hexInfo0.mLines.add(new HexPosition(0f, -2f));
 
-        HexInfo hexInfo0p0p = new HexInfo();
-        hexInfo0p0p.mStartHexPosition = new HexPosition(0f, 0f);
-        hexInfo0p0p.mLastHexPosition = new HexPosition(0f, 0f);
-        hexInfo0p0p.mLines.add(new HexPosition(1f, 0f));
-        hexInfo0p0p.mLines.add(new HexPosition(-2f, 0f));
+        HexInfo hexInfo1 = new HexInfo();
+        hexInfo1.mStartHexPosition = new HexPosition(1f, 2f);
+        hexInfo1.mLastHexPosition = new HexPosition(1f, 2f);
+        hexInfo0.mLines.add(new HexPosition(0f, -2f));
 
-        HexInfo hexInfo1p0p = new HexInfo();
-        hexInfo1p0p.mStartHexPosition = new HexPosition(1f, 0f);
-        hexInfo1p0p.mLastHexPosition = new HexPosition(1f, 0f);
-        hexInfo1p0p.mLines.add(new HexPosition(0f, 0f));
+        HexInfo hexInfo2 = new HexInfo();
+        hexInfo2.mStartHexPosition = new HexPosition(0f, -2f);
+        hexInfo2.mLastHexPosition = new HexPosition(0f, -2f);
+        hexInfo2.mLines.add(new HexPosition(-1f, 2f));
+        hexInfo2.mLines.add(new HexPosition(1f, 2f));
 
-        HexInfo hexInfo2m0p = new HexInfo();
-        hexInfo2m0p.mStartHexPosition = new HexPosition(-2f, 0f);
-        hexInfo2m0p.mLastHexPosition = new HexPosition(-2f, 0f);
-        hexInfo2m0p.mLines.add(new HexPosition(0f, 0f));
+        mMissionHexMap.put(hexInfo0.mStartHexPosition, hexInfo0);
+        mMissionHexMap.put(hexInfo1.mStartHexPosition, hexInfo1);
+        mMissionHexMap.put(hexInfo2.mStartHexPosition, hexInfo2);
 
-        HexInfo hexInfo05p1p = new HexInfo();
-        hexInfo05p1p.mStartHexPosition = new HexPosition(0.5f, 1f);
-        hexInfo05p1p.mLastHexPosition = new HexPosition(0.5f, 1f);
-
-        mMissionHexMap.put(hexInfo0p0p.mStartHexPosition, hexInfo0p0p);
-        mMissionHexMap.put(hexInfo1p0p.mStartHexPosition, hexInfo1p0p);
-        mMissionHexMap.put(hexInfo2m0p.mStartHexPosition, hexInfo2m0p);
-        mMissionHexMap.put(hexInfo05p1p.mStartHexPosition, hexInfo05p1p);
+        mMissionLineList = new ArrayList<>(getMissionLines());
     }
 
     public HashMap<HexPosition, HexInfo> getMissionHexMap() {
@@ -46,12 +40,31 @@ public class MissionInstance {
     public HashSet<LineInfo> getMissionLines() {
         HashSet<LineInfo> lines = new HashSet<>();
         for (HexInfo hexInfo : mMissionHexMap.values()) {
-            for (HexPosition line : hexInfo.mLines) {
-                HexPosition lineFrom = hexInfo.mStartHexPosition;
-                HexPosition lineTo = line;
-                lines.add(new LineInfo(lineFrom, lineTo));
+            HexPosition lineFrom = hexInfo.mStartHexPosition;
+            for (HexPosition lineTo : hexInfo.mLines) {
+                LineInfo lineInfo = getLineInfoName(lineFrom, lineTo);
+                lines.add(lineInfo);
             }
         }
         return lines;
+    }
+
+    public LineInfo getLineInfoName(HexPosition hexPositionFrom, HexPosition hexPositionTo) {
+        float lineFromX = hexPositionFrom.first;
+        float lineFromY = hexPositionFrom.second;
+        float lineToX = hexPositionTo.first;
+        float lineToY = hexPositionTo.second;
+
+        if (lineFromY > lineToY) {
+            return new LineInfo(hexPositionFrom, hexPositionTo);
+        } else if (lineFromY == lineToY) {
+            if (lineFromX < lineToX) {
+                return new LineInfo(hexPositionFrom, hexPositionTo);
+            } else {
+                return new LineInfo(hexPositionTo, hexPositionFrom);
+            }
+        } else {
+            return new LineInfo(hexPositionTo, hexPositionFrom);
+        }
     }
 }
