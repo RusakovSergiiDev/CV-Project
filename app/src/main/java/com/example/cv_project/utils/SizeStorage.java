@@ -7,9 +7,9 @@ import android.view.WindowManager;
 
 import com.example.cv_project.R;
 import com.example.cv_project.utils.gamedata.HexPosition;
-import com.example.cv_project.utils.gamedata.HexTableInfo;
+import com.example.cv_project.utils.gamedata.HexGlobalInfo;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class SizeStorage {
 
@@ -36,8 +36,9 @@ public class SizeStorage {
     public float mTaskHexOutDia = 0;
     public float mTaskHexVerticalInterval = 0;
     public float mTaskBackLineWidth = 0;
-    public HashMap<HexPosition, HexTableInfo> mTaskHexInfoHM = new HashMap<>();
     public float[] mTaskTops = new float[12];
+    public LinkedHashMap<HexPosition, HexGlobalInfo> mTaskHexInfoLHM = new LinkedHashMap<>();
+
     //Table
     public float mTableCenterX = 0;
     public float mTableCenterY = 0;
@@ -50,7 +51,7 @@ public class SizeStorage {
     public float mTableHexOutRad = 0;
     public float mTableHexVerticalInterval = 0;
     public float mTableBackLineWidth = 0;
-    public HashMap<HexPosition, HexTableInfo> mTableHexInfoHM = new HashMap<>();
+    public LinkedHashMap<HexPosition, HexGlobalInfo> mTableHexInfoLHM = new LinkedHashMap<>();
     //Line
     public float mLineWidth = 0;
 
@@ -111,37 +112,38 @@ public class SizeStorage {
         mTaskHexOutDia = mTaskHexOutRad * 2;
         mTaskHexVerticalInterval = (float) (Math.sqrt(3) / 2 * mTaskHexOutDia);
 
-        mTaskHexInfoHM.put(new HexPosition(-1f, 2f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(0f, 2f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(1f, 2f), new HexTableInfo());
+        mTaskHexInfoLHM.put(new HexPosition(-1f, 2f), null);
+        mTaskHexInfoLHM.put(new HexPosition(0f, 2f), null);
+        mTaskHexInfoLHM.put(new HexPosition(1f, 2f), null);
 
-        mTaskHexInfoHM.put(new HexPosition(-1.5f, 1f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(-0.5f, 1f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(0.5f, 1f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(1.5f, 1f), new HexTableInfo());
+        mTaskHexInfoLHM.put(new HexPosition(-1.5f, 1f), null);
+        mTaskHexInfoLHM.put(new HexPosition(-0.5f, 1f), null);
+        mTaskHexInfoLHM.put(new HexPosition(0.5f, 1f), null);
+        mTaskHexInfoLHM.put(new HexPosition(1.5f, 1f), null);
 
-        mTaskHexInfoHM.put(new HexPosition(-2f, 0f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(-1f, 0f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(0f, 0f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(1f, 0f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(2f, 0f), new HexTableInfo());
+        mTaskHexInfoLHM.put(new HexPosition(-2f, 0f), null);
+        mTaskHexInfoLHM.put(new HexPosition(-1f, 0f), null);
+        mTaskHexInfoLHM.put(new HexPosition(0f, 0f), null);
+        mTaskHexInfoLHM.put(new HexPosition(1f, 0f), null);
+        mTaskHexInfoLHM.put(new HexPosition(2f, 0f), null);
 
-        mTaskHexInfoHM.put(new HexPosition(-1.5f, -1f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(-0.5f, -1f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(0.5f, -1f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(1.5f, -1f), new HexTableInfo());
+        mTaskHexInfoLHM.put(new HexPosition(-1.5f, -1f), null);
+        mTaskHexInfoLHM.put(new HexPosition(-0.5f, -1f), null);
+        mTaskHexInfoLHM.put(new HexPosition(0.5f, -1f), null);
+        mTaskHexInfoLHM.put(new HexPosition(1.5f, -1f), null);
 
-        mTaskHexInfoHM.put(new HexPosition(-1f, -2f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(0f, -2f), new HexTableInfo());
-        mTaskHexInfoHM.put(new HexPosition(1f, -2f), new HexTableInfo());
+        mTaskHexInfoLHM.put(new HexPosition(-1f, -2f), null);
+        mTaskHexInfoLHM.put(new HexPosition(0f, -2f), null);
+        mTaskHexInfoLHM.put(new HexPosition(1f, -2f), null);
 
-        for (HexPosition hexPosition : mTaskHexInfoHM.keySet()) {
-            HexTableInfo hexTableInfo = mTaskHexInfoHM.get(hexPosition);
-            hexTableInfo.mOutDia = mTaskHexOutDia;
-            hexTableInfo.mOutRad = mTaskHexOutRad;
-            hexTableInfo.mCenterX = mTaskCenterX + hexPosition.first * mTaskHexOutDia;
-            hexTableInfo.mCenterY = mTaskCenterY - hexPosition.second * mTaskHexVerticalInterval;
-            hexTableInfo.build();
+        for (HexPosition hexPosition : mTaskHexInfoLHM.keySet()) {
+            HexGlobalInfo hexTaskInfo = new HexGlobalInfo();
+            hexTaskInfo.mCenterX = mTaskCenterX + (hexPosition.first * mTaskHexOutDia);
+            hexTaskInfo.mCenterY = mTaskCenterY - (hexPosition.second * mTaskHexVerticalInterval);
+            hexTaskInfo.mOutDia = mTaskHexOutDia;
+            hexTaskInfo.mOutRad = mTaskHexOutRad;
+            hexTaskInfo.build();
+            mTaskHexInfoLHM.put(hexPosition, hexTaskInfo);
         }
     }
 
@@ -159,39 +161,39 @@ public class SizeStorage {
         mTableHexOutDia = mTableHexOutRad * 2;
         mTableHexVerticalInterval = (float) (Math.sqrt(3) / 2 * mTableHexOutDia);
 
-        mTableHexInfoHM.put(new HexPosition(-1f, 2f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(0f, 2f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(1f, 2f), new HexTableInfo());
+        mTableHexInfoLHM.put(new HexPosition(-1f, 2f), null);
+        mTableHexInfoLHM.put(new HexPosition(0f, 2f), null);
+        mTableHexInfoLHM.put(new HexPosition(1f, 2f), null);
 
-        mTableHexInfoHM.put(new HexPosition(-1.5f, 1f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(-0.5f, 1f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(0.5f, 1f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(1.5f, 1f), new HexTableInfo());
+        mTableHexInfoLHM.put(new HexPosition(-1.5f, 1f), null);
+        mTableHexInfoLHM.put(new HexPosition(-0.5f, 1f), null);
+        mTableHexInfoLHM.put(new HexPosition(0.5f, 1f), null);
+        mTableHexInfoLHM.put(new HexPosition(1.5f, 1f), null);
 
-        mTableHexInfoHM.put(new HexPosition(-2f, 0f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(-1f, 0f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(0f, 0f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(1f, 0f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(2f, 0f), new HexTableInfo());
+        mTableHexInfoLHM.put(new HexPosition(-2f, 0f), null);
+        mTableHexInfoLHM.put(new HexPosition(-1f, 0f), null);
+        mTableHexInfoLHM.put(new HexPosition(0f, 0f), null);
+        mTableHexInfoLHM.put(new HexPosition(1f, 0f), null);
+        mTableHexInfoLHM.put(new HexPosition(2f, 0f), null);
 
-        mTableHexInfoHM.put(new HexPosition(-1.5f, -1f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(-0.5f, -1f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(0.5f, -1f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(1.5f, -1f), new HexTableInfo());
+        mTableHexInfoLHM.put(new HexPosition(-1.5f, -1f), null);
+        mTableHexInfoLHM.put(new HexPosition(-0.5f, -1f), null);
+        mTableHexInfoLHM.put(new HexPosition(0.5f, -1f), null);
+        mTableHexInfoLHM.put(new HexPosition(1.5f, -1f), null);
 
-        mTableHexInfoHM.put(new HexPosition(-1f, -2f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(0f, -2f), new HexTableInfo());
-        mTableHexInfoHM.put(new HexPosition(1f, -2f), new HexTableInfo());
+        mTableHexInfoLHM.put(new HexPosition(-1f, -2f), null);
+        mTableHexInfoLHM.put(new HexPosition(0f, -2f), null);
+        mTableHexInfoLHM.put(new HexPosition(1f, -2f), null);
 
-        for (HexPosition hexPosition : mTableHexInfoHM.keySet()) {
-            HexTableInfo hexTableInfo = mTableHexInfoHM.get(hexPosition);
-            hexTableInfo.mOutDia = mTableHexOutDia;
-            hexTableInfo.mOutRad = mTableHexOutRad;
+        for (HexPosition hexPosition : mTableHexInfoLHM.keySet()) {
+            HexGlobalInfo hexTableInfo = new HexGlobalInfo();
             hexTableInfo.mCenterX = getHexCenterXByPosition(hexPosition);
             hexTableInfo.mCenterY = getHexCenterYByPosition(hexPosition);
+            hexTableInfo.mOutDia = mTableHexOutDia;
+            hexTableInfo.mOutRad = mTableHexOutRad;
             hexTableInfo.build();
+            mTableHexInfoLHM.put(hexPosition, hexTableInfo);
         }
-
         mLineWidth = mTableHexOutRad / 2;
     }
 
@@ -216,10 +218,10 @@ public class SizeStorage {
     public HexPosition getNearestHexPosition(float x, float y) {
         float minDelta = mTableHexOutDia * 2;
         HexPosition nearestHexPosition = null;
-        for (HexPosition hexTablePosition : mTableHexInfoHM.keySet()) {
-            HexTableInfo hexTableInfo = mTableHexInfoHM.get(hexTablePosition);
-            float matPositionX = hexTableInfo.mCenterX;
-            float matPositionY = hexTableInfo.mCenterY;
+        for (HexPosition hexTablePosition : mTableHexInfoLHM.keySet()) {
+            HexGlobalInfo hexGlobalInfo = mTableHexInfoLHM.get(hexTablePosition);
+            float matPositionX = hexGlobalInfo.mCenterX;
+            float matPositionY = hexGlobalInfo.mCenterY;
             float deltaX = Math.abs(Math.max(matPositionX, x) - Math.min(matPositionX, x));
             float deltaY = Math.abs(Math.max(matPositionY, y) - Math.min(matPositionY, y));
             float delta = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);

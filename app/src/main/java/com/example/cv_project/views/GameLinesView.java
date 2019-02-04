@@ -44,7 +44,7 @@ public class GameLinesView extends FrameLayout {
 
     public void loadMission(MissionInstance mission) {
         mCurrentMissionInstance = mission;
-        for (LineInfo lineInfo : mCurrentMissionInstance.getMissionLines()) {
+        for (LineInfo lineInfo : mCurrentMissionInstance.getMissionLineList()) {
             addLineView(lineInfo);
         }
     }

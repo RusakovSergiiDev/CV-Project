@@ -4,7 +4,7 @@ import android.os.Bundle;
 
 import com.example.cv_project.base.BaseActivity;
 import com.example.cv_project.base.BaseApp;
-import com.example.cv_project.utils.GameUIManager;
+import com.example.cv_project.utils.GameProcessManager;
 import com.example.cv_project.utils.SizeStorage;
 import com.example.cv_project.utils.gamedata.MissionInstance;
 import com.example.cv_project.views.GameBackView;
@@ -22,7 +22,7 @@ public class MainActivity extends BaseActivity {
     private GameLinesView mGameLinesView;
     private GameTouchView mGameTouchView;
 
-    private GameUIManager mGameUIManager = new GameUIManager();
+    private GameProcessManager mGameProcessManager = new GameProcessManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,10 +32,10 @@ public class MainActivity extends BaseActivity {
         mGameBackView = findViewById(R.id.game_back_view);
         mGameLinesView = findViewById(R.id.game_lines_view);
         mGameTouchView = findViewById(R.id.game_view);
-        mGameUIManager.registerViews(mGameBackView, mGameLinesView, mGameTouchView);
+        mGameProcessManager.registerViews(mGameBackView, mGameLinesView, mGameTouchView);
 
         MissionInstance missionInstance = new MissionInstance();
         missionInstance.initMission(null);
-        mGameUIManager.loadMission(missionInstance);
+        mGameProcessManager.loadMission(missionInstance);
     }
 }

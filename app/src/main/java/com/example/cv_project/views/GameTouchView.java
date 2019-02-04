@@ -16,7 +16,7 @@ import com.example.cv_project.utils.gamedata.HexInfo;
 import com.example.cv_project.utils.SizeStorage;
 import com.example.cv_project.utils.gamedata.LineInfo;
 import com.example.cv_project.utils.gamedata.MissionInstance;
-import com.example.cv_project.utils.gamedata.OnGameTouchViewListener;
+import com.example.cv_project.utils.gamedata.OnGameViewEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,12 +29,14 @@ public class GameTouchView extends FrameLayout {
     SizeStorage mSizeStorage;
 
     private MissionInstance mCurrentMissionInstance = null;
-    private GameViewTouchListener mGameViewTouchListener = new GameViewTouchListener();
 
     private HexView mSelectedHexView;
+    private ValueAnimator mAnimatorTranslationX;
+    private ValueAnimator mAnimatorTranslationY;
     private HashMap<HexPosition, HexView> mHexViews = new HashMap<>();
 
-    private OnGameTouchViewListener mOnGameTouchViewListener;
+    private OnGameViewTouchListener mOnGameViewTouchListener = new OnGameViewTouchListener();
+    private OnGameViewEventListener mOnGameViewEventListener;
 
     public GameTouchView(@NonNull Context context) {
         super(context);
@@ -53,11 +55,11 @@ public class GameTouchView extends FrameLayout {
 
     private void init() {
         BaseApp.getSizeComponent().injectGameView(this);
-        setOnTouchListener(mGameViewTouchListener);
+        setOnTouchListener(mOnGameViewTouchListener);
     }
 
-    public void setListener(OnGameTouchViewListener listener) {
-        mOnGameTouchViewListener = listener;
+    public void setListener(OnGameViewEventListener listener) {
+        mOnGameViewEventListener = listener;
     }
 
     public void loadMission(MissionInstance missionInstance) {
@@ -118,29 +120,40 @@ public class GameTouchView extends FrameLayout {
         float newTranslationX = mSizeStorage.getHexTranslationXByPosition(newHexPosition);
         float newTranslationY = mSizeStorage.getHexTranslationYByPosition(newHexPosition);
 
-        ValueAnimator animatorTranslationX = ValueAnimator.ofFloat(currentTranslationX, newTranslationX);
-        animatorTranslationX.setDuration(150);
-        animatorTranslationX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        mAnimatorTranslationX = ValueAnimator.ofFloat(currentTranslationX, newTranslationX);
+        mAnimatorTranslationX.setDuration(150);
+        mAnimatorTranslationX.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float value = (float) animation.getAnimatedValue();
                 hexView.setTranslationX(value);
                 redrawLines(startHexPosition);
+                if (value == 150) {
+                    mAnimatorTranslationY.cancel();
+                    mAnimatorTranslationY = null;
+                    stepFinished();
+                }
+                stepFinished();
             }
         });
 
-        ValueAnimator animatorTranslationY = ValueAnimator.ofFloat(currentTranslationY, newTranslationY);
-        animatorTranslationY.setDuration(150);
-        animatorTranslationY.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        mAnimatorTranslationY = ValueAnimator.ofFloat(currentTranslationY, newTranslationY);
+        mAnimatorTranslationY.setDuration(150);
+        mAnimatorTranslationY.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float value = (float) animation.getAnimatedValue();
                 hexView.setTranslationY(value);
                 redrawLines(startHexPosition);
+                if (value == 150) {
+                    mAnimatorTranslationX.cancel();
+                    mAnimatorTranslationX = null;
+                    stepFinished();
+                }
             }
         });
-        animatorTranslationX.start();
-        animatorTranslationY.start();
+        mAnimatorTranslationX.start();
+        mAnimatorTranslationY.start();
     }
 
     private void releaseHexAtLastPosition() {
@@ -151,6 +164,7 @@ public class GameTouchView extends FrameLayout {
         hexView.setTranslationY(mSizeStorage.getHexTranslationYByPosition(lastHexPosition));
 
         redrawLines(hexView.mHexInfo.mStartHexPosition);
+        stepFinished();
     }
 
     private void redrawLines(HexPosition hexPosition) {
@@ -160,41 +174,19 @@ public class GameTouchView extends FrameLayout {
 
         ArrayList<HexPosition> lines = hexViewFrom.mHexInfo.mLines;
         for (HexPosition hexPositionTo : lines) {
+            LineInfo lineInfo = mCurrentMissionInstance.getLineInfoName(hexPosition, hexPositionTo);
             HexView hexViewTo = mHexViews.get(hexPositionTo);
             float toX = mSizeStorage.getHexCenterXByPosition(hexViewTo.mHexInfo.mLastHexPosition);
             float toY = mSizeStorage.getHexCenterYByPosition(hexViewTo.mHexInfo.mLastHexPosition);
-            for (LineInfo lineInfo : mCurrentMissionInstance.getMissionLines()) {
-                if ((lineInfo.first.equals(hexPosition) && lineInfo.second.equals(hexPositionTo)) ||
-                        (lineInfo.second.equals(hexPosition) && lineInfo.first.equals(hexPositionTo))) {
-                    mOnGameTouchViewListener.onRedrawLines(lineInfo, currentCenterX, currentCenterY, toX, toY);
-                }
-            }
-        }
-
-        for (LineInfo lineInfo : mCurrentMissionInstance.getMissionLines()) {
-            if (lineInfo.first.equals(hexPosition)) {
-                HexInfo hexInfoSecond = mHexViews.get(lineInfo.second).mHexInfo;
-                HexPosition hexPositionSecond = hexInfoSecond.mLastHexPosition;
-                float fromX = currentCenterX;
-                float fromY = currentCenterY;
-                float toX = mSizeStorage.getHexCenterXByPosition(hexPositionSecond);
-                float toY = mSizeStorage.getHexCenterYByPosition(hexPositionSecond);
-                if (mOnGameTouchViewListener != null)
-                    mOnGameTouchViewListener.onRedrawLines(lineInfo, fromX, fromY, toX, toY);
-            } else if (lineInfo.second.equals(hexPosition)) {
-                HexInfo hexInfoFirst = mHexViews.get(lineInfo.first).mHexInfo;
-                HexPosition hexPositionFirst = hexInfoFirst.mLastHexPosition;
-                float fromX = mSizeStorage.getHexCenterXByPosition(hexPositionFirst);
-                float fromY = mSizeStorage.getHexCenterYByPosition(hexPositionFirst);
-                float toX = currentCenterX;
-                float toY = currentCenterY;
-                if (mOnGameTouchViewListener != null)
-                    mOnGameTouchViewListener.onRedrawLines(lineInfo, fromX, fromY, toX, toY);
-            }
+            mOnGameViewEventListener.onRedrawLines(lineInfo, currentCenterX, currentCenterY, toX, toY);
         }
     }
 
-    private class GameViewTouchListener implements OnTouchListener {
+    private void stepFinished() {
+        mOnGameViewEventListener.onStepFinished(mCurrentMissionInstance);
+    }
+
+    private class OnGameViewTouchListener implements OnTouchListener {
 
         @Override
         public boolean onTouch(View view, MotionEvent event) {

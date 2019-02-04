@@ -13,12 +13,11 @@ import com.example.cv_project.base.BaseApp;
 import com.example.cv_project.utils.SizeStorage;
 import com.example.cv_project.utils.SizeUtils;
 import com.example.cv_project.utils.gamedata.HexPosition;
-import com.example.cv_project.utils.gamedata.HexTableInfo;
+import com.example.cv_project.utils.gamedata.HexGlobalInfo;
 import com.example.cv_project.utils.gamedata.LineInfo;
 import com.example.cv_project.utils.gamedata.MissionInstance;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import javax.inject.Inject;
 
@@ -30,7 +29,7 @@ public class GameBackView extends FrameLayout {
     private MissionInstance mCurrentMissionInstance;
     private Paint mPaintTask;
     private Paint mPaintTable;
-    private ArrayList<Float> mLinesTops = new ArrayList<>();
+    private ArrayList<Float> mTargetLinesTops = new ArrayList<>();
 
     public GameBackView(@NonNull Context context) {
         super(context);
@@ -72,39 +71,37 @@ public class GameBackView extends FrameLayout {
         super.onDraw(canvas);
         canvas.drawPath(SizeUtils.floatArrayToPath(mSizeStorage.mTaskTops), mPaintTask);
 
-        for (HexTableInfo hexTableInfo : mSizeStorage.mTableHexInfoHM.values()) {
-            canvas.drawPath(SizeUtils.floatArrayToPath(hexTableInfo.mTops), mPaintTable);
+        for (HexGlobalInfo hexGlobalInfo : mSizeStorage.mTableHexInfoLHM.values()) {
+            canvas.drawPath(SizeUtils.floatArrayToPath(hexGlobalInfo.mTops), mPaintTable);
         }
 
-        for (int i = 0; i < mLinesTops.size(); i += 4) {
-            float fromX = mLinesTops.get(i);
-            float fromY = mLinesTops.get(i + 1);
-            float toX = mLinesTops.get(i + 2);
-            float toY = mLinesTops.get(i + 3);
+        for (int i = 0; i < mTargetLinesTops.size(); i += 4) {
+            float fromX = mTargetLinesTops.get(i);
+            float fromY = mTargetLinesTops.get(i + 1);
+            float toX = mTargetLinesTops.get(i + 2);
+            float toY = mTargetLinesTops.get(i + 3);
             canvas.drawLine(fromX, fromY, toX, toY, mPaintTask);
         }
     }
 
     public void loadMission(MissionInstance mission) {
         mCurrentMissionInstance = mission;
-        ArrayList<LineInfo> lines = new ArrayList<>(mCurrentMissionInstance.getMissionLines());
-        HashMap<HexPosition, HexTableInfo> taskPositionHm = mSizeStorage.mTaskHexInfoHM;
-        for (LineInfo lineInfo : lines) {
+        for(LineInfo lineInfo : mCurrentMissionInstance.getMissionTargetLineList()){
             HexPosition lineFrom = lineInfo.first;
             HexPosition lineTo = lineInfo.second;
 
-            HexTableInfo infoFrom = taskPositionHm.get(lineFrom);
-            HexTableInfo infoTo = taskPositionHm.get(lineTo);
+            HexGlobalInfo infoFrom = mSizeStorage.mTaskHexInfoLHM.get(lineFrom);
+            HexGlobalInfo infoTo =  mSizeStorage.mTaskHexInfoLHM.get(lineTo);
 
             float fromX = infoFrom.mCenterX;
             float fromY = infoFrom.mCenterY;
             float toX = infoTo.mCenterX;
             float toY = infoTo.mCenterY;
 
-            mLinesTops.add(fromX);
-            mLinesTops.add(fromY);
-            mLinesTops.add(toX);
-            mLinesTops.add(toY);
+            mTargetLinesTops.add(fromX);
+            mTargetLinesTops.add(fromY);
+            mTargetLinesTops.add(toX);
+            mTargetLinesTops.add(toY);
         }
         invalidate();
     }
