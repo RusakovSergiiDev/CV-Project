@@ -1,5 +1,6 @@
 package com.example.cv_project.views;
 
+import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -117,8 +118,8 @@ public class GameTouchView extends FrameLayout {
         float currentTranslationX = hexView.getTranslationX();
         float currentTranslationY = hexView.getTranslationY();
 
-        float newTranslationX = mSizeStorage.getHexTranslationXByPosition(newHexPosition);
-        float newTranslationY = mSizeStorage.getHexTranslationYByPosition(newHexPosition);
+        final float newTranslationX = mSizeStorage.getHexTranslationXByPosition(newHexPosition);
+        final float newTranslationY = mSizeStorage.getHexTranslationYByPosition(newHexPosition);
 
         mAnimatorTranslationX = ValueAnimator.ofFloat(currentTranslationX, newTranslationX);
         mAnimatorTranslationX.setDuration(150);
@@ -128,12 +129,11 @@ public class GameTouchView extends FrameLayout {
                 float value = (float) animation.getAnimatedValue();
                 hexView.setTranslationX(value);
                 redrawLines(startHexPosition);
-                if (value == 150) {
+                if (value == newTranslationX) {
                     mAnimatorTranslationY.cancel();
                     mAnimatorTranslationY = null;
                     stepFinished();
                 }
-                stepFinished();
             }
         });
 
@@ -145,7 +145,7 @@ public class GameTouchView extends FrameLayout {
                 float value = (float) animation.getAnimatedValue();
                 hexView.setTranslationY(value);
                 redrawLines(startHexPosition);
-                if (value == 150) {
+                if (value == newTranslationY) {
                     mAnimatorTranslationX.cancel();
                     mAnimatorTranslationX = null;
                     stepFinished();

@@ -1,5 +1,7 @@
 package com.example.cv_project.utils;
 
+import android.util.Log;
+
 import com.example.cv_project.utils.gamedata.HexInfo;
 import com.example.cv_project.utils.gamedata.HexPosition;
 import com.example.cv_project.utils.gamedata.LineInfo;
@@ -9,6 +11,7 @@ import com.example.cv_project.views.GameBackView;
 import com.example.cv_project.views.GameLinesView;
 import com.example.cv_project.views.GameTouchView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -40,17 +43,57 @@ public class GameProcessManager implements OnGameViewEventListener {
     public void onStepFinished(MissionInstance mission) {
         HashMap<HexPosition, HexInfo> mCurrentHexesMap = mission.getMissionHexMap();
         HashSet<LineInfo> mCurrentLinesSet = new HashSet<>();
-        for (HexPosition hexPosition : mCurrentHexesMap.keySet()) {
-            HexInfo hexInfo = mCurrentHexesMap.get(hexPosition);
-            for (HexPosition hexPositionTo : hexInfo.mLines) {
-                LineInfo lineInfo = mission.getLineInfoName(hexPosition, hexPositionTo);
-                mCurrentLinesSet.add(lineInfo);
+        ArrayList<LineInfo> mCurrentMiniLines = new ArrayList<>();
+        for (LineInfo line : mission.getMissionLineList()) {
+            HexPosition from = line.first;
+            HexPosition to = line.second;
+            HexPosition currentFrom = null;
+            HexPosition currentTo = null;
+            for (HexInfo hex : mCurrentHexesMap.values()) {
+                if (hex.mStartHexPosition.equals(from)) {
+                    currentFrom = hex.mLastHexPosition;
+                }
+                if (hex.mStartHexPosition.equals(to)) {
+                    currentTo = hex.mLastHexPosition;
+                }
             }
+            LineInfo lineInfo = mission.getLineInfoName(currentFrom, currentTo);
+            mCurrentLinesSet.add(lineInfo);
         }
+        mCurrentMiniLines = separateLines(new ArrayList<>(mCurrentLinesSet));
 
-        for(LineInfo lineInfo : mCurrentLinesSet){
-            HexPosition hexIndexFrom = lineInfo.first;
-            HexPosition hexIndexTo = lineInfo.second;
+        Log.d("myLogs", "mCurrentLinesSet()");
+        for (LineInfo lineInfo : mCurrentMiniLines) {
+            Log.d("myLogs", lineInfo.toString());
         }
+    }
+
+    public ArrayList<LineInfo> separateLines(ArrayList<LineInfo> lines) {
+        ArrayList<LineInfo> result = new ArrayList<>();
+        for (LineInfo line : lines) {
+
+        }
+        return result;
+    }
+
+    private ArrayList<LineInfo> separateLine(LineInfo line) {
+        ArrayList<LineInfo> result = new ArrayList<>();
+        return result;
+    }
+
+    private ArrayList<LineInfo> separateVerticalLine(LineInfo line) {
+        ArrayList<LineInfo> result = new ArrayList<>();
+        return result;
+    }
+
+    private ArrayList<LineInfo> separateHorizontalLine(LineInfo line) {
+        ArrayList<LineInfo> result = new ArrayList<>();
+        float fromX = Math.min(line.first.first, line.second.first);
+        float toX = Math.max(line.first.first, line.second.first);
+        float Y = line.first.second;
+        for (float i = fromX; i <= toX; i += 0.5) {
+
+        }
+        return result;
     }
 }
